@@ -1,5 +1,0 @@
---- Rapport d'erreurs XML ---
-Fichier de log généré le: Mon Nov 10 20:50:28 CET 2025
-Nombre total d'erreurs: 1
------------------------------
-[FATAL_VALIDATION] Ligne 0: Erreur fatale de validation XSD: Feature 'http://xml.org/sax/features/external-general-entities' is not recognized.
