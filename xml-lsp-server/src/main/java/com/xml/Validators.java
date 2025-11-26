@@ -19,8 +19,6 @@ import java.nio.file.Files;
  * Les erreurs de validation sont stockées dans l'com.xml.ErrorCollector fourni.
  */
 public class Validator {
-
-
     private final ErrorCollector collector;
 
     public Validator(ErrorCollector collector) {
@@ -29,18 +27,15 @@ public class Validator {
 
     public boolean validate(File xmlFile, File xsdFile) {
         if (xsdFile == null || !xsdFile.exists()) {
-
             return true;
         }
-
-        
-
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setFeature("http://apache.org/xml/features/continue-after-fatal-error", true);
             //factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-           // factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            //factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 
             Schema schema = factory.newSchema(xsdFile);
             javax.xml.validation.Validator validator = schema.newValidator();
@@ -48,12 +43,16 @@ public class Validator {
 
             try (var is = Files.newInputStream(xmlFile.toPath())) {
                 validator.validate(new StreamSource(is));
+            } catch (SAXException e) {
+            //collector.addError("Validation XSD échouée : " + e.getMessage(), 0, "FATAL_VALIDATION");
             }
-            
             return true;
-        } catch (SAXException | IOException e) {
-            collector.addError("Validation XSD échouée : " + e.getMessage(), 0, "FATAL_VALIDATION");
-
+        }
+        catch (IOException e) {
+            collector.addError("Erreur E/S lors de la validation: " + e.getMessage(), 0, "IO_ERROR");
+            return false;
+        } catch (Exception e) {
+            collector.addError("Erreur inattendue lors de la validation: " + e.getMessage(), 0, "UNEXPECTED_ERROR");
             return false;
         }
     }
@@ -76,9 +75,8 @@ public class Validator {
         }
         
         @Override 
-        public void fatalError(SAXParseException e) throws SAXException {
+        public void fatalError(SAXParseException e) {
             col.addError(e.getMessage(), e.getLineNumber(), "FATAL_VALIDATION");
-            throw e;
         }
     }
 }
