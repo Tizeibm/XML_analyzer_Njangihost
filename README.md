@@ -1,9 +1,9 @@
 # ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white) ![Java](https://img.shields.io/badge/Java-007396?style=flat&logo=java&logoColor=white) ![VSCode](https://img.shields.io/badge/Visual%20Studio%20Code-007ACC?style=flat&logo=visual-studio-code&logoColor=white)
 
-# XML_analyzer_Njangihost
+# XML_analyzer
 
 ## Description du projet
-XML_analyzer_Njangihost est un projet conçu pour analyser et valider des fichiers XML en utilisant une architecture de serveur de langage. Il intègre des fonctionnalités avancées de validation XML et d'extraction de données, facilitant ainsi le travail avec des fichiers XML complexes. Ce projet est idéal pour les développeurs souhaitant intégrer des fonctionnalités de traitement XML dans leurs applications.
+XML_analyzer est un projet conçu pour analyser et valider des fichiers XML en utilisant une architecture de serveur de langage. Il intègre des fonctionnalités avancées de validation XML et d'extraction de données, facilitant ainsi le travail avec des fichiers XML complexes. Ce projet est idéal pour les développeurs souhaitant intégrer des fonctionnalités de traitement XML dans leurs applications.
 
 ### Fonctionnalités clés
 - Validation de fichiers XML selon des schémas XSD.
