@@ -87,4 +87,4 @@ Les contributions sont les bienvenues ! Pour contribuer, veuillez suivre ces ét
 4. Poussez vers la branche (`git push origin feature/YourFeature`).
 5. Ouvrez une Pull Request.
 
-Nous vous remercions de votre intérêt pour le projet XML_analyzer_Njangihost !
+Nous vous remercions de votre intérêt pour le projet XML_analyzer!
