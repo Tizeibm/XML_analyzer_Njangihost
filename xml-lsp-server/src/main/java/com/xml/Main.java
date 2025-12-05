@@ -1,11 +1,12 @@
 package com.xml;
 
-import com.xml.handlers.LargeXmlValidator;
-import com.xml.models.ErrorCollector;
-import com.xml.models.ValidationResponse;
-
 import java.io.File;
-import java.util.Scanner;
+
+import com.xml.handlers.LargeXmlValidator;
+import com.xml.models.FragmentIndex;
+import com.xml.models.ValidationResult;
+import com.xml.services.PatchManager;
+import com.xml.services.PatchedFragmentManager;
 
 /**
  * Point d'entrée de l'application en mode ligne de commande (CLI).
@@ -14,27 +15,23 @@ import java.util.Scanner;
  * Utilisation: java -jar xml-lsp-parser-1.0-SNAPSHOT-jar-with-dependencies.jar <chemin_xml> [chemin_xsd]
  */
 public class Main {
-
-
     public static void main(String[] args) {
-        File xmlFile = new File("C:\\Users\\FBI\\Desktop\\XML\\XML_analyzer_Njangihost\\xml-lsp-server\\books.xml");
+        File xmlFile = new File("C:\\Users\\FBI\\Desktop\\XML\\XML_analyzer_Njangihost\\xml-lsp-server\\books_1mb.xml");
         File xsdFile = new File("C:\\Users\\FBI\\Desktop\\XML\\XML_analyzer_Njangihost\\xml-lsp-server\\books.xsd");
 
         LargeXmlValidator largeXmlValidator = new LargeXmlValidator();
-        ErrorCollector errorCollector = new ErrorCollector();
-
-        Validator validator = new Validator(errorCollector);
+        FragmentIndex index = new FragmentIndex();
+        PatchManager manager = new PatchManager();
+        PatchedFragmentManager patchedFragmentManager = new PatchedFragmentManager(xmlFile, manager, index);
         //validator.validate(xmlFile, xsdFile);
-
-        LargeXmlValidator.ValidationResult valide = largeXmlValidator.validate(xmlFile, xsdFile);
-
+        ValidationResult valide = largeXmlValidator.validate(xmlFile, xsdFile);
 
 
         valide.getErrors().forEach(xmlError ->{
-            System.out.println(xmlError.getMessage());
-            System.out.println(xmlError.getLineNumber());
-            System.out.println(xmlError.getCode());
+
         });
+        System.out.println(valide.getSummary());
+        System.out.println(valide.getErrorCount());
 
     }
 }

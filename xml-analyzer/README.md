@@ -1,71 +1,192 @@
-# xml-analyzer README
+# XML Validator for Huge Files
 
-This is the README for your extension "xml-analyzer". After writing up a brief description, we recommend including the following sections.
+<div align="center">
 
-## Features
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)
+![VS Code](https://img.shields.io/badge/VS%20Code-1.74%2B-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+**Validate and edit XML files up to 100GB+ without loading them into memory.**
 
-For example if there is an image subfolder under your extension project workspace:
+[Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [Architecture](#architecture) • [API Reference](#api-reference)
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+</div>
 
 ---
 
-## Following extension guidelines
+## Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+### 🚀 Ultra-Fast Response Times
+- **< 1ms** for syntax checks (MicroParser)
+- **< 10ms** for LSP operations
+- Instant feedback while typing
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+### 💾 Memory Efficient
+- **Streaming indexing** - never loads the entire file
+- **Piece Table** data structure for O(log n) edits
+- **StringPool** deduplication for tag names
+- Handles **100GB+ files** with minimal RAM
 
-## Working with Markdown
+### ✏️ Virtual Patching
+- Edit fragments without modifying the original file
+- All changes stored in memory until explicitly saved
+- Debounced background validation
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+### ✅ XSD Validation
+- Structural parsing first (detect malformed XML)
+- XSD validation only on well-formed documents
+- Error mapping to specific fragments
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+---
 
-## For more information
+## Installation
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+### Prerequisites
+- **Java 17+** (JRE or JDK)
+- **VS Code 1.74+**
+- **Node.js 18+** (for development only)
 
-**Enjoy!**
+### From VSIX (Recommended)
+```bash
+code --install-extension xml-validator-big-files-1.0.0.vsix
+```
+
+### From Source
+```bash
+# Clone the repository
+git clone https://github.com/Njangihost/XML_analyzer_Njangihost.git
+cd XML_analyzer_Njangihost
+
+# Build the LSP Server
+cd xml-lsp-server
+mvn clean package -DskipTests
+cp target/xml-lsp-server-1.0-SNAPSHOT-jar-with-dependencies.jar ../xml-analyzer/server/xml-lsp-server.jar
+
+# Build the Extension
+cd ../xml-analyzer
+npm install
+npm run compile
+```
+
+---
+
+## Quick Start
+
+### 1. Validate an XML File
+1. Open a `.xml` file in VS Code
+2. Press `Ctrl+Shift+P` → `XML: Validate with XSD`
+3. Select your XML file and optionally an XSD schema
+
+### 2. Browse Validation Errors
+- Click the **XML Validator** icon in the Activity Bar
+- Errors are grouped by fragment with line numbers
+
+### 3. Edit a Fragment
+1. Click on an error to preview the fragment
+2. Make your corrections in the editor
+3. Close the tab to apply the patch (in memory)
+
+### 4. Save All Changes
+- Run `XML: Save Patched File` to write all patches to disk
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    VS Code Extension                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │ ErrorPanel  │  │ FragmentEdit│  │ LSP Client (JSON-RPC)│  │
+│  └─────────────┘  └─────────────┘  └──────────┬──────────┘  │
+└───────────────────────────────────────────────┼─────────────┘
+                                                │
+                              stdio (JSON-RPC)  │
+                                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    XML LSP Server (Java)                     │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                  XmlLanguageServer                   │    │
+│  │  • indexFile()      • validateDocument()            │    │
+│  │  • getFragment()    • applyPatch()                  │    │
+│  │  • saveFile()       • getErrors()                   │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                            │                                 │
+│  ┌─────────────┐  ┌────────┴────────┐  ┌─────────────────┐  │
+│  │ MicroParser │  │ StreamingIndexer │  │ PieceTable      │  │
+│  │ (Instant)   │  │ (Fragments)      │  │ (Virtual Edits) │  │
+│  └─────────────┘  └─────────────────┘  └─────────────────┘  │
+│                            │                                 │
+│  ┌─────────────────────────┴───────────────────────────────┐│
+│  │              BackgroundValidationService                 ││
+│  │  • Thread pool for heavy XSD validation                 ││
+│  │  • 300ms debounce for rapid edits                       ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+| Component | Purpose | Performance |
+|-----------|---------|-------------|
+| **MicroParser** | Instant syntax checks | < 1ms |
+| **StreamingIndexer** | Fragment indexing without loading file | O(n) streaming |
+| **PieceTable** | Virtual edits on large files | O(log k) edits |
+| **FragmentIndex** | Fast fragment lookup by ID/line | O(1) lookup |
+| **BackgroundValidationService** | Async XSD validation | Debounced 300ms |
+
+---
+
+## API Reference
+
+### LSP Custom Requests
+
+| Request | Description | Parameters |
+|---------|-------------|------------|
+| `xml/indexFile` | Index an XML file | `fileUri: string` |
+| `xml/validateDocument` | Validate with XSD | `{xmlPath, xsdPath?, applyPatches}` |
+| `xml/getErrors` | Get all validation errors | - |
+| `xml/getFragment` | Get fragment content | `fragmentId: string` |
+| `xml/applyPatch` | Apply virtual patch | `{fragmentId, newContent}` |
+| `xml/saveFile` | Save with all patches | `fileUri?: string` |
+
+---
+
+## Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `xmlValidator.javaPath` | `java` | Path to Java executable |
+| `xmlValidator.serverJar` | (bundled) | Custom LSP server JAR path |
+
+---
+
+## Performance Benchmarks
+
+| Metric | Result | Target |
+|--------|--------|--------|
+| MicroParser response | 0.48 ms | < 10ms ✅ |
+| FragmentIndex lookup | 0.001 ms | < 1ms ✅ |
+| PieceTable edit | 0.007 ms | < 1ms ✅ |
+| Memory (1M fragments) | < 150 MB | < 150MB ✅ |
+
+---
+
+## Development
+
+### Running Tests
+```bash
+cd xml-lsp-server
+mvn test
+```
+
+### Test Coverage
+- **62 tests** covering:
+  - Streaming indexing
+  - Dynamic fragmentation (5MB threshold)
+  - PieceTable operations
+  - MicroParser syntax detection
+  - Scalability (100K+ fragments)
+
+---

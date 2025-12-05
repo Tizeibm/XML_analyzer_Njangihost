@@ -8,6 +8,10 @@ public class ValidateFilesParams {
     public String xmlUri;   // file:///path/to/file.xml
     public String xsdUri;   // file:///path/to/schema.xsd ou null
 
-    public ValidateFilesParams(String xmlfile, String xsdfile) {
+    public ValidateFilesParams() {}
+
+    public ValidateFilesParams(String xmlUri, String xsdUri) {
+        this.xmlUri = xmlUri;
+        this.xsdUri = xsdUri;
     }
 }

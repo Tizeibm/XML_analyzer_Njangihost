@@ -36,13 +36,13 @@ public class XMLValidationHandler {
 
 
                 // Validation optimisée
-                LargeXmlValidator.ValidationResult result =
-                        largeValidator.validateWithoutZones(xmlFile, xsdFile);
+                ValidationResult result =
+                        largeValidator.validate(xmlFile, xsdFile);
 
                 // Conversion en diagnostics LSP
                 List<Diagnostic> diagnostics = convertToDiagnostics(result.getErrors());
 
-                // ✅ JUSTE RETOURNER LA RÉPONSE - Pas de publishDiagnostics !
+                // ✅ JUSTE RETOURNER LA RÉPONSE
                 ValidationResponse response = new ValidationResponse();
                 response.success = result.isSuccess();
                 response.diagnostics = diagnostics;  // ← Les diagnostics sont dans la réponse
@@ -64,60 +64,32 @@ public class XMLValidationHandler {
             }
         });
     }
-
     public CompletableFuture<NavigationResponse> navigateToError(NavigationParams params) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 File xmlFile = new File(URI.create(params.xmlUri));
                 XMLError error = params.error;
 
-                
+                // Extraire uniquement la zone pour cette erreur
+                XmlZoneExtractor.XmlZone zone = XmlZoneExtractor.extractErrorZone(xmlFile, error.getLineNumber());
+                error.setZone(zone.getContent(), zone.getStartLine(), zone.getEndLine());
 
-                // Extraire la zone pour cette erreur spécifique
-                XMLError errorWithZone = largeValidator.extractZoneForError(error);
-
-                // Préparer la réponse de navigation
                 NavigationResponse response = new NavigationResponse();
                 response.success = true;
-                response.error = errorWithZone;
-                response.preciseRange = errorWithZone.getPreciseRangeJson();
-                response.hasZone = errorWithZone.isZoneExtracted();
+                response.error = error;
+                response.preciseRange = error.getPreciseRangeJson();
+                response.hasZone = error.isZoneExtracted();
 
                 if (response.hasZone) {
-                    response.zoneContent = errorWithZone.getZoneContent();
-                    response.zoneStartLine = errorWithZone.getZoneStartLine();
-                    response.zoneEndLine = errorWithZone.getZoneEndLine();
+                    response.zoneContent = error.getZoneContent();
+                    response.zoneStartLine = error.getZoneStartLine();
+                    response.zoneEndLine = error.getZoneEndLine();
                 }
 
                 return response;
 
             } catch (Exception e) {
-
                 return new NavigationResponse(false, "Erreur navigation: " + e.getMessage());
-            }
-        });
-    }
-
-    public CompletableFuture<ZoneExtractionResponse> extractErrorZones(ZoneExtractionParams params) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                File xmlFile = new File(URI.create(params.xmlUri));
-                List<Integer> errorIndexes = params.errorIndexes;
-
-                
-
-                // Extraire les zones uniquement pour les erreurs demandées
-                List<XMLError> errorsWithZones = largeValidator.extractZonesForErrors(
-                        params.errors, errorIndexes
-                );
-
-                return new ZoneExtractionResponse(true, errorsWithZones,
-                        "Zones extraites pour " + errorIndexes.size() + " erreurs");
-
-            } catch (Exception e) {
-
-                return new ZoneExtractionResponse(false, params.errors,
-                        "Erreur extraction: " + e.getMessage());
             }
         });
     }
@@ -130,7 +102,7 @@ public class XMLValidationHandler {
                         params.modifiedFragment,
                         params.fragmentStartLine,
                         params.fragmentEndLine
-                );
+                ).isSuccess();
 
                 return new PatchResponse(success,
                         success ? "Patch appliqué avec succès" : "Échec du patching");

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="books.xsd">
+    /book>
+    
+    <book id="bk000004">
+        <author>Author 4</author>
+        <title>Book Title 4</title>
+        <genre>Science</genre>
+        <price>9.99</price>
+        <publish_date>2004-05-05</publish_date>
+        <description>This is the description for book number 4. It contains interesting content about various topics.</description>
+    </book>
+    <book id="bk000005">
+        <author>Author 5</author>
+        <title>Book Title 5</title>
+        <genre>History</genre>
+        <price>10.99</price>
+        <publish_date>2005-06-06</publish_date>
+        <description>This is the description for book number 5. It contains interesting content about various topics.</description>
+    </book>
+    <book id="bk000006">
+        <author>Author 6</author>
+        <title>Book Title 6</title>
+        <genre>Computer</genre>
+        <price>11.99</price>
+        <publish_date>2006-07-07</publish_date>
+        <description>This is the description for book number 6. It contains interesting content about various topics.</description>
+    </book>
+    <book id="bk000007">
+        <author>Author 7</author>
+        <title>Book Title 7</title>
+        <genre>Fantasy</genre>
+        <price>12.99</price>
+        <publish_date>2007-08-08</publish_date>
+        <description>This is the description for book number 7. It contains interesting content about various topics.</description>
+    </book>
+    <book id="bk000008">
+        <author>Author 8</author>
+        <title>Book Title 8</title>
+        <genre>Romance</genre>
+        <price>13.99</price>
+        <publish_date>2008-09-09</publish_date>
+        <description>This is the description for book number 8. It contains interesting content about various topics.</description>
+    </book>
+    <book id="bk000009">
+        <author>Author 9</author>
+        <title>Book Title 9</title>
+        <genre>Horror</genre>
+        <price>14.99</price>
+        <publish_date>2009-10-10</publish_date>
+        <description>This is the description for book number 9. It contains interesting content about various topics.</description>
+    </book>
+    <book id="bk000010">
+        <author>Author 10</author>
+        <title>Book Title 10</title>
+        <genre>Science</genre>
+        <price>15.99</price>
+        <publish_date>2010-11-11</publish_date>
+        <description>This is the description for book number 10. It contains interesting content about various topics.</description>
+    </book>
+</catalog>

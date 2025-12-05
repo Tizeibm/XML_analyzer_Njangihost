@@ -5,9 +5,8 @@ package com.xml.models;
  */
 public class XMLError {
     public final String message;
-    public final int    lineNumber;
+    public final int lineNumber;
     public final String type;   // SYNTAX, STRUCTURE, VALIDATION_ERROR, WARNING, FATAL_*
-
     private String id;
     private int column;
     private String severity; // "error", "warning"

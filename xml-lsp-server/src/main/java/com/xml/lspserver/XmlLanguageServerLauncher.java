@@ -1,53 +1,41 @@
 package com.xml.lspserver;
 
-import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
-import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.services.LanguageClient;
 
-
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
- * Lanceur principal du serveur LSP - Version corrigée
+ * Lanceur du serveur LSP XML
  */
 public class XmlLanguageServerLauncher {
-
-
-
     public static void main(String[] args) {
         try {
+            System.err.println("Démarrage du serveur LSP XML...");
             
-
-            // Configuration mémoire réduite
-            long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024);
-            
-
             XmlLanguageServer server = new XmlLanguageServer();
-
-            // Créer le launcher LSP - VERSION CORRIGÉE
-            var launcher = LSPLauncher.createServerLauncher(
-                    server,
-                    System.in,
-                    System.out
+            
+            InputStream in = System.in;
+            OutputStream out = System.out;
+            
+            Launcher<LanguageClient> launcher = Launcher.createLauncher(
+                server,
+                LanguageClient.class,
+                in,
+                out
             );
-
-            // Connecter le client APRÈS la création du launcher
+            
             LanguageClient client = launcher.getRemoteProxy();
             server.connect(client);
-
             
+            System.err.println("Serveur LSP XML démarré et en écoute...");
             
-
-            // Démarrer l'écoute
-            Future<?> listening = launcher.startListening();
-
-            // Attendre que l'écoute se termine
-            listening.get();
-
+            launcher.startListening().get();
+            
         } catch (Exception e) {
-
+            System.err.println("Erreur fatale : " + e.getMessage());
+            e.printStackTrace(System.err);
             System.exit(1);
         }
     }

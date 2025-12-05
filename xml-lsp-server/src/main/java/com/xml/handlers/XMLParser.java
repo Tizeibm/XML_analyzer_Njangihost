@@ -1,11 +1,8 @@
-package com.xml;
+package com.xml.handlers;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
-import com.xml.handlers.TrackedStaxHandler;
 import com.xml.models.ErrorCollector;
 
 /**
@@ -27,11 +24,26 @@ public class XMLParser {
      */
     public void parse(File xmlFile) {
         
-        try (InputStream in = new FileInputStream(xmlFile)) {
-            new TrackedStaxHandler(errorCollector).parse(in);
+        try {
+            new TrackedStaxHandler(errorCollector).parse(xmlFile);
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             errorCollector.addError("Fichier illisible : " + e.getMessage(), 0, "FATAL_PARSE");
+
+        }
+    }
+
+    /**
+     * Parsing STREAMING depuis un InputStream (utile pour PatchedInputStream).
+     * Le stream n'est pas chargé entièrement en mémoire.
+     */
+    public void parse(InputStream inputStream) {
+        
+        try {
+            new TrackedStaxHandler(errorCollector).parse(inputStream);
+            
+        } catch (Exception e) {
+            errorCollector.addError("Stream illisible : " + e.getMessage(), 0, "FATAL_PARSE");
 
         }
     }

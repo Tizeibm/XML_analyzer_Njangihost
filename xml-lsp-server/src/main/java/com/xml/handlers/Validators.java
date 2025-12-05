@@ -1,7 +1,8 @@
-package com.xml;
+package com.xml.handlers;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 
 import javax.xml.XMLConstants;
@@ -47,6 +48,52 @@ public class Validators {
                 validator.validate(new StreamSource(is));
             } catch (SAXException e) {
                 // Avec Xerces + continue-after-fatal-error, le parsing NE s'arrête plus ici.
+            }
+
+            return true;
+
+        } catch (IOException e) {
+            collector.addError("Erreur d'entrée/sortie lors de la validation : " + e.getMessage(), 0, "IO_ERROR");
+            return false;
+
+        } catch (Exception e) {
+            collector.addError("Erreur inattendue lors de la validation : " + e.getMessage(), 0, "UNEXPECTED_ERROR");
+            return false;
+        }
+    }
+
+    /**
+     * Valide un InputStream XML contre un schéma XSD.
+     * Utilisé pour valider le contenu patché sans l'écrire sur disque.
+     * 
+     * @param xmlStream InputStream contenant le XML à valider (peut être un PatchedInputStream)
+     * @param xsdFile Fichier XSD pour la validation
+     * @return true si la validation réussit (ou si pas de XSD), false en cas d'erreur IO/inattendue
+     */
+    public boolean validateStream(InputStream xmlStream, File xsdFile) {
+
+        if (xsdFile == null || !xsdFile.exists()) {
+            return true;
+        }
+
+        try {
+            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+            // Activation continue-after-fatal-error
+            factory.setFeature("http://apache.org/xml/features/continue-after-fatal-error", true);
+
+            // Sécurité anti-XXE
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+
+            Schema schema = factory.newSchema(xsdFile);
+            javax.xml.validation.Validator validator = schema.newValidator();
+            validator.setErrorHandler(new XsdErrorHandler(collector));
+
+            try {
+                validator.validate(new StreamSource(xmlStream));
+            } catch (SAXException e) {
+                // Avec Xerces + continue-after-fatal-error, on collecte toutes les erreurs
             }
 
             return true;
